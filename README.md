@@ -46,7 +46,8 @@ python3 -m compileall -q backend experiments tests
 20 Python testi ve 8 sentetik karar senaryosu bu ortamda geçti.
 Bu sayı OCR doğruluğunu veya donanım güvenliğini ölçmez.
 Rust çekirdeği için üç test tanımlı; yerelde Rust araç zinciri bulunmadığından
-çalıştırılmadı. GitHub Actions yapılandırması hazır, uzak CI henüz çalışmadı.
+çalıştırılmadı. GitHub Actions üzerinde Python 3.10/3.12 kontrolleri ve üç Rust testi geçti.
+CI kanıtı: https://github.com/0merUfuk/smart-plate-barrier/actions/runs/38249748425
 
 ## Repository düzeni
 

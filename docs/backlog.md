@@ -15,5 +15,7 @@
 | Yönetici erişimi | Gerçek kullanım için kimlik doğrulama | Bekliyor |
 | Dönem ölçümleri | OCR metrikleri, gecikme, güç/enerji | Bekliyor |
 
-Yerel Python testleri geçti. Rust araç zinciri bu ortamda yok. Uzak CI henüz çalışmadı.
-Public GitHub repository oluşturma ve kaynak yayımlama henüz yapılmadı.
+Yerel Python testleri geçti. 12 Ekim 2026 tarihinde public repository yayımlandı.
+GitHub Actions üzerinde Python 3.10/3.12 kontrolleri ve üç Rust testi geçti.
+Kanıt: https://github.com/0merUfuk/smart-plate-barrier/actions/runs/38249748425
+Bu sonuçlar gerçek OCR veya fiziksel donanım doğrulaması değildir.
