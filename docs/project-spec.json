@@ -1,0 +1,42 @@
+{
+  "version": "0.1.0-demo",
+  "prepared_on": "2026-10-11",
+  "demo_date": "2026-10-12",
+  "title": "Akıllı Plaka Tanıma ve Bariyer Sistemi",
+  "team_size": 7,
+  "demo_mode": "simulation",
+  "local_python_tests_passed": 20,
+  "synthetic_decision_cases_passed": 8,
+  "real_ocr_verified": false,
+  "hardware_verified": false,
+  "rust_tests_executed_locally": false,
+  "remote_ci_verified": false,
+  "confidence_threshold": 0.85,
+  "threshold_calibrated": false,
+  "requirements": [
+    ["FR01", "Yaklaşan aracı algılama", "Donanımda planlandı", "Eşik ve tekrar tetikleme deneyi"],
+    ["FR02", "JPEG çekme ve sunucuya gönderme", "Planlandı", "Gerçek karttan alınan görüntü"],
+    ["FR03", "Görüntüden plaka çıkarma", "Planlandı", "Etiketli test kümesi üzerinde OCR ölçümü"],
+    ["FR04", "Biçim ve güven kontrolü", "Sentetik girdide uygulandı", "test_bad_format ve test_low_confidence"],
+    ["FR05", "İzinli listeyle tam eşleşme", "Uygulandı", "test_allowed_opens ve test_denied_stays_closed"],
+    ["FR06", "Tekrar istekleri tekilleştirme", "Demo sunucusunda uygulandı", "test_repeat_after_close_never_reopens ve test_concurrent_duplicates_open_once"],
+    ["FR07", "Bariyer ve durum göstergesi", "Sanal olarak uygulandı", "test_allowed_opens ve test_http_roundtrip"],
+    ["FR08", "İzinli plaka ekleme ve silme", "Uygulandı", "test_persistence_and_no_reseed"],
+    ["FR09", "Zaman damgalı erişim denemesi kaydı", "Uygulandı", "test_persistence_and_no_reseed"],
+    ["FR10", "Ret ve hata halinde yeni açma üretmeme", "Hata girdileriyle uygulandı", "test_faults_never_open"],
+    ["FR11", "Alan boşluğunu doğrulayarak kapanma", "Demoda manuel", "test_deny_does_not_close_occupied_barrier"],
+    ["FR12", "Gerçek yön ve geçiş tespiti", "İlk sürüm dışında", "Ek sensör ve kapsam kararı gerekli"]
+  ],
+  "work_packages": [
+    ["WP01", "Kapsam ve sistem analizi", "1", "1", "Gereksinimler ve açık kararlar"],
+    ["WP02", "Kart ve güç doğrulaması", "1", "2", "Pin matrisi ve bileşen testleri"],
+    ["WP03", "Gömülü uygulanabilirlik", "2", "3", "Rust kararı ve JPEG iletimi"],
+    ["WP04", "Veri toplama ve etiketleme", "2", "4", "Kaynak ve çekim koşulu kayıtları"],
+    ["WP05", "OCR ve ön işleme deneyleri", "3", "5", "Ayrı ayar ve test kümeleri"],
+    ["WP06", "Backend ve yönetim arayüzü", "2", "5", "Görüntü API ve kimlik doğrulama"],
+    ["WP07", "Mekanik ve fiziksel entegrasyon", "3", "6", "Kasa ve güvenli kapanma"],
+    ["WP08", "Entegrasyon ve kabul deneyleri", "6", "8", "Gerçek cihaz ve hata senaryoları"],
+    ["WP09", "İyileştirme ve tekrar deneyleri", "9", "10", "Takvim uygunsa ek çalışma"],
+    ["WP10", "Raporlama ve ekip kayıtları", "1", "10", "Haftalık güncelleme ve kanıtlar"]
+  ]
+}

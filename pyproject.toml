@@ -1,0 +1,9 @@
+[project]
+name = "smart-plate-barrier"
+version = "0.1.0"
+description = "Local simulation for a smart license plate barrier course project"
+requires-python = ">=3.10"
+dependencies = []
+
+[tool.ruff]
+line-length = 100

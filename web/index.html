@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="tr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Akıllı Plaka Tanıma ve Bariyer Sistemi</title><link rel="stylesheet" href="/style.css"><script defer src="/app.js"></script></head>
+<body><main>
+<header><p class="eyebrow">VERİ BİLİMİ · 12 EKİM 2026 DEMOSU</p><h1>Akıllı Plaka Tanıma<br>ve Bariyer Sistemi</h1><p class="disclosure">SİMÜLASYON MODU — Plaka metni ve güven değeri sentetiktir. Kamera, gerçek OCR ve fiziksel servo bağlı değildir.</p></header>
+<section class="workspace"><div><h2>Erişim denemesi</h2><p>OCR sonucunu temsil eden bir gözlem gönderin. Karar ve kayıt işlemleri gerçekten çalışır.</p>
+<form id="scan"><label for="plate">Plaka metni</label><input id="plate" value="34 DMO 01" maxlength="32" required>
+<label for="confidence">Sentetik güven skoru <span id="score">0.96</span></label><input id="confidence" type="range" min="0" max="1" step="0.01" value="0.96">
+<label for="fault">Senaryo</label><select id="fault"><option value="none">Normal gözlem</option><option value="ocr_error">OCR hatası simülasyonu</option><option value="network_timeout">Ağ zaman aşımı simülasyonu</option></select>
+<button type="submit">Yeni gözlem gönder</button></form>
+<div class="buttons"><button id="denied" type="button">İzinsiz plaka</button><button id="low" type="button">Düşük güven</button><button id="replay" type="button" disabled>Aynı isteği tekrar gönder</button></div>
+<p id="result" role="status" aria-live="polite">İlk gözlem bekleniyor.</p></div>
+<div><h2>Sanal bariyer</h2><div class="barrier-scene" aria-hidden="true"><div class="post"></div><div id="arm" class="arm"></div><div class="road"></div></div>
+<p id="barrier-state">Durum yükleniyor</p><button id="clear" type="button">Araç alanının boş olduğunu doğrula</button>
+<p class="note">Bu düğme bir sensörün yerini yalnızca demoda alır. Açılma kararı gerçek geçiş kanıtı değildir. Ret veya hata, açık bariyeri kapatmaz.</p>
+<h2>İzinli plakalar</h2><ul id="allowlist"></ul><form id="add"><label for="new-plate">Sentetik plaka ekle</label><input id="new-plate" placeholder="35 ABC 123" maxlength="32" required><button>Ekle</button></form></div></section>
+<section><h2>Erişim denemeleri</h2><p>En son 50 kayıt. Saatler tarayıcının yerel saat diliminde gösterilir. Veritabanı UTC saklar.</p><div class="scroll"><table><thead><tr><th>Zaman</th><th>Plaka</th><th>Güven</th><th>Karar</th><th>Neden</th><th>Sanal hareket</th></tr></thead><tbody id="events"></tbody></table></div></section>
+<footer>v0.1.0-demo · Önerilen eşik 0.85, henüz gerçek veriyle kalibre edilmedi · Yerel eğitim prototipi</footer>
+</main></body></html>

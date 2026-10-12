@@ -1,0 +1,10 @@
+[
+  {"name":"allowed", "plate":"34 DMO 01", "confidence":0.96,"fault":"none","expected":"allow"},
+  {"name":"denied", "plate":"35 ABC 999", "confidence":0.96,"fault":"none","expected":"deny"},
+  {"name":"low_confidence", "plate":"34 DMO 01", "confidence":0.40,"fault":"none","expected":"unreadable"},
+  {"name":"bad_format", "plate":"82 ABC 01", "confidence":0.96,"fault":"none","expected":"unreadable"},
+  {"name":"ocr_error", "plate":"", "confidence":0.0,"fault":"ocr_error","expected":"error"},
+  {"name":"timeout", "plate":"34 DMO 01", "confidence":0.96,"fault":"network_timeout","expected":"error"},
+  {"name":"boundary", "plate":"06 TST 02", "confidence":0.85,"fault":"none","expected":"allow"},
+  {"name":"lookalike", "plate":"34 DM0 01", "confidence":0.99,"fault":"none","expected":"deny"}
+]
