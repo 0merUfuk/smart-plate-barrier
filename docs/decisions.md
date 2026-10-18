@@ -12,6 +12,7 @@
 | ADR-06 | Tam eşleşme, düşük güvende açmama | Uygulandı; yanlış yetkilendirmeyi azaltmayı amaçlar |
 | ADR-07 | Alan boşluğu doğrulamasıyla kapanma | Demoda manuel; fiziksel sensör ve cihaz kontrolü tasarlanacak |
 | ADR-08 | request_id ile tekilleştirme | Demo sunucusunda uygulandı; cihaz tarafı henüz yok |
+| ADR-09 | web/ içinde Next.js + React + TypeScript + Tailwind CSS | 18 Ekim 2026: hedef frontend yığını ilke olarak onaylandı; mevcut vanilla HTML/CSS/JS demo henüz taşınmadı, geçiş uygulaması ayrıca yetkilendirilecek. Mevcut Python backend ve karar/kayıt çekirdeği korunur; FastAPI planlanan API framework'üdür. Next.js yalnızca frontend katmanıdır; Route Handlers/API Routes ile yinelenen iş API'si, ayrı veritabanı erişimi, OCR veya cihaz/bariyer kontrolü eklenmez. Mevcut genel mimari ve ana dizinler korunur. |
 
 Kaynak PDF'nin tek kare ve 1/0 yanıt yaklaşımı genişletildi. Tek kare her koşulda
 hatasız OCR sağlamaz. API kararları allow/deny/unreadable/error olarak ayrılır.
