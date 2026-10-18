@@ -44,6 +44,8 @@
 
 ## Frontend kalitesi
 
+- Frontend tasarım ve uygulama görevlerinde [docs/design/README.md](docs/design/README.md)
+  ve ilgili tasarım şartnamelerini oku; yetkili frontend işleri için bağlayıcı görsel rehberdir.
 - TypeScript strict tip denetimi kullan; `any` için belgelenmiş gerekçe gerekir.
   API sınırında veriyi doğrula; ortak tipleri gerektiğinde tanımla.
 - Özellik sahipliğini açık tut; UI, API istemcisi ve yeniden kullanılabilir mantığı
