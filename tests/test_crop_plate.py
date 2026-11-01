@@ -2,12 +2,17 @@ import json
 import tempfile
 import unittest
 from pathlib import Path
-import cv2
-import numpy as np
 
-from experiments.crop_plate import crop_image, process_crop
+try:
+    import cv2
+    import numpy as np
+    from experiments.crop_plate import crop_image, process_crop
+    HAS_DEPS = True
+except ImportError:
+    HAS_DEPS = False
 
 
+@unittest.skipUnless(HAS_DEPS, "OpenCV and NumPy required for crop tests")
 class CropPlateTests(unittest.TestCase):
     def setUp(self):
         self.tmp_dir = tempfile.TemporaryDirectory()

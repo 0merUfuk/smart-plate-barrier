@@ -3,16 +3,21 @@ import json
 import tempfile
 import unittest
 from pathlib import Path
-import cv2
-import numpy as np
-from fastapi.testclient import TestClient
 
-from backend.fastapi_app import create_app
-from backend.ocr import get_ocr_engine
+try:
+    import cv2
+    import numpy as np
+    from fastapi.testclient import TestClient
+    from backend.fastapi_app import create_app
+    from backend.ocr import get_ocr_engine
+    HAS_DEPS = True
+except ImportError:
+    HAS_DEPS = False
 
 AUTH_HEADER = {"Authorization": "Bearer smart-barrier-device-key-2026"}
 
 
+@unittest.skipUnless(HAS_DEPS, "FastAPI, TestClient, OpenCV, and NumPy required for device API tests")
 class DeviceAPITests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):

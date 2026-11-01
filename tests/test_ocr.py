@@ -1,15 +1,20 @@
 import unittest
-import numpy as np
-import cv2
 
-from backend.ocr import (
-    decode_image_input,
-    get_ocr_engine,
-    FastPlateOCRAdapter,
-    OCRResult,
-)
+try:
+    import numpy as np
+    import cv2
+    from backend.ocr import (
+        decode_image_input,
+        get_ocr_engine,
+        FastPlateOCRAdapter,
+        OCRResult,
+    )
+    HAS_DEPS = True
+except ImportError:
+    HAS_DEPS = False
 
 
+@unittest.skipUnless(HAS_DEPS, "OpenCV, NumPy, and fast-plate-ocr required for OCR tests")
 class OCRTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
