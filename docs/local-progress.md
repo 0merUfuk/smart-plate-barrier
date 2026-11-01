@@ -18,7 +18,10 @@ Bu kayıt çalışma dalındaki gözlemleri izler; Drive görev kaydının yerin
 
 ## Kararlar ve sınırlar
 
-- `origin/main` tabanı `f452802` doğrulandı.
-- G0, G1 ve G3 yazılım adımları başarıyla tamamlandı ve 38 otomatik test ile doğrulandı.
-- Frontend web araç zinciri (Node 26 üzerinde `npm ci`, `typecheck`, `test`, `lint`, `build`) eksiksiz çalıştırıldı ve geçti.
+- `origin/main` tabanı doğrulandı ve PR #7 birleştirildi.
+- G0, G1 ve G3 yazılım adımları başarıyla tamamlandı; test kapsamı %95 düzeyine çıkarıldı ve 53 otomatik test ile doğrulandı.
+- SQLite veritabanı bağlantıları `contextmanager` ile sarmalanarak bağlantı sızıntıları ve kaynak uyarıları giderildi.
+- FastAPI çok parçalı form (multipart) geçici dosya yönetimi `try...finally` ile güvenceye alındı; HTTP 413 durumu güncellendi.
+- ESP32-CAM yazılımında PSRAM bulunmayan modüller için SVGA yerine CIF (400x296) güvenli bellek yapılandırması getirildi.
+- Frontend web araç zinciri (Node üzerinde `npm ci`, `typecheck`, `test`, `lint`, `build`) eksiksiz çalıştırıldı ve geçti.
 - Donanım hareketi (G2/G4) kullanıcıdan fiziksel kart/besleme doğrulaması gelene kadar kesinlikle engellidir; bariyere güç verilmemiştir.

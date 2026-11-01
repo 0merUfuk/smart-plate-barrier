@@ -1,5 +1,6 @@
 import json
 import sqlite3
+from contextlib import contextmanager
 from datetime import datetime, timezone
 from pathlib import Path
 from .domain import barrier_transition, decide, normalize_plate, PLATE, validate_observation, CONFIDENCE_THRESHOLD
@@ -51,10 +52,15 @@ class Store:
                 db.executemany("INSERT OR IGNORE INTO allowed VALUES (?)", [(p,) for p in DEMO_PLATES])
                 db.execute("INSERT INTO settings VALUES ('seeded', 'yes')")
 
+    @contextmanager
     def connect(self):
         db = sqlite3.connect(self.path, timeout=10)
         db.row_factory = sqlite3.Row
-        return db
+        try:
+            with db:
+                yield db
+        finally:
+            db.close()
 
     @staticmethod
     def now():

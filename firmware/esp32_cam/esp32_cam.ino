@@ -84,7 +84,7 @@ void setupCamera() {
     config.jpeg_quality = 12; // 0-63 (düşük sayı = yüksek kalite)
     config.fb_count     = 2;
   } else {
-    config.frame_size   = FRAMESIZE_SVGA; // 800x600 veya CIF
+    config.frame_size   = FRAMESIZE_CIF; // 400x296 (PSRAM yokken güvenli bellek boyutu)
     config.jpeg_quality = 15;
     config.fb_count     = 1;
   }

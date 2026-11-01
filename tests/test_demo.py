@@ -97,16 +97,24 @@ class HTTPTests(unittest.TestCase):
             self.assertEqual(json.load(r)['decision'],'allow')
         with self.request('/api/demo/clear',{}) as r:self.assertEqual(json.load(r)['barrier'],'closed')
     def test_foreign_origin_blocked(self):
-        with self.assertRaises(HTTPError) as ctx:self.request('/api/demo/clear',{}, {'Content-Type':'application/json','Origin':'https://example.invalid'})
+        with self.assertRaises(HTTPError) as ctx:
+            self.request('/api/demo/clear',{}, {'Content-Type':'application/json','Origin':'https://example.invalid'})
         self.assertEqual(ctx.exception.code,403)
+        ctx.exception.close()
     def test_unsupported_media(self):
-        with self.assertRaises(HTTPError) as ctx:self.request('/api/demo/clear',{}, {'Content-Type':'text/plain'})
+        with self.assertRaises(HTTPError) as ctx:
+            self.request('/api/demo/clear',{}, {'Content-Type':'text/plain'})
         self.assertEqual(ctx.exception.code,415)
+        ctx.exception.close()
     def test_path_and_bad_json_object(self):
-        with self.assertRaises(HTTPError) as ctx:self.request('/../../backend/store.py')
+        with self.assertRaises(HTTPError) as ctx:
+            self.request('/../../backend/store.py')
         self.assertEqual(ctx.exception.code,404)
-        with self.assertRaises(HTTPError) as ctx:self.request('/api/demo/scan',[])
+        ctx.exception.close()
+        with self.assertRaises(HTTPError) as ctx:
+            self.request('/api/demo/scan',[])
         self.assertEqual(ctx.exception.code,400)
+        ctx.exception.close()
 
 
 if __name__ == '__main__': unittest.main()

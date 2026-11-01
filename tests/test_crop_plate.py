@@ -50,6 +50,43 @@ class CropPlateTests(unittest.TestCase):
         # Out of bounds y
         with self.assertRaises(ValueError):
             crop_image(self.img, [100, 100, 300, 500])
+        # Box length != 4
+        with self.assertRaises(ValueError):
+            crop_image(self.img, [100, 100, 300])
+
+    def test_process_crop_file_errors(self):
+        # Non-existent input file
+        with self.assertRaises(FileNotFoundError):
+            process_crop(self.dir / "missing.jpg", [0, 0, 10, 10], self.dir / "out.jpg")
+
+        # Corrupt file
+        corrupt = self.dir / "corrupt.jpg"
+        corrupt.write_bytes(b"not-an-image")
+        with self.assertRaises(ValueError):
+            process_crop(corrupt, [0, 0, 10, 10], self.dir / "out.jpg")
+
+    def test_process_crop_jpeg_output(self):
+        out_crop = self.dir / "crop.jpg"
+        meta = process_crop(self.img_path, [100, 200, 400, 270], out_crop)
+        self.assertTrue(out_crop.is_file())
+        self.assertGreater(len(out_crop.read_bytes()), 0)
+        self.assertEqual(meta["box_format"], "xmin_ymin_xmax_ymax")
+
+    def test_crop_plate_cli_main(self):
+        import sys
+        from unittest.mock import patch
+        from experiments.crop_plate import main
+
+        out_crop = self.dir / "cli_crop.jpg"
+        test_args = [
+            "crop_plate.py",
+            str(self.img_path),
+            "--box", "100", "200", "400", "270",
+            "-o", str(out_crop),
+        ]
+        with patch.object(sys, "argv", test_args):
+            main()
+        self.assertTrue(out_crop.is_file())
 
     def test_process_crop_end_to_end(self):
         out_crop = self.dir / "crop.png"

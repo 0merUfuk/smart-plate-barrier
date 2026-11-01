@@ -147,24 +147,29 @@ def create_app(db_path: str = DEFAULT_DB, ocr_engine: BasePlateOCR | None = None
         elif content_type == "multipart/form-data":
             # Multipart form upload
             form = await request.form()
-            metadata_field = form.get("metadata")
-            image_field = form.get("image")
-
-            if not metadata_field or not image_field:
-                raise HTTPException(
-                    status_code=400,
-                    detail="multipart form must contain 'metadata' (JSON) and 'image' (file)",
-                )
-
             try:
-                meta_dict = json.loads(metadata_field) if isinstance(metadata_field, str) else {}
-                meta = ObservationMetadata(**meta_dict)
-                device_id, session_id, request_id = meta.device_id, meta.session_id, meta.request_id
-                roi = meta.roi
-            except Exception as exc:
-                raise HTTPException(status_code=400, detail=f"invalid metadata: {exc}")
+                metadata_field = form.get("metadata")
+                image_field = form.get("image")
 
-            image_bytes = await image_field.read()
+                if not metadata_field or not image_field:
+                    raise HTTPException(
+                        status_code=400,
+                        detail="multipart form must contain 'metadata' (JSON) and 'image' (file)",
+                    )
+
+                try:
+                    meta_dict = json.loads(metadata_field) if isinstance(metadata_field, str) else {}
+                    meta = ObservationMetadata(**meta_dict)
+                    device_id, session_id, request_id = meta.device_id, meta.session_id, meta.request_id
+                    roi = meta.roi
+                except Exception as exc:
+                    raise HTTPException(status_code=400, detail=f"invalid metadata: {exc}")
+
+                image_bytes = await image_field.read()
+            finally:
+                for v in form.values():
+                    if hasattr(v, "close"):
+                        await v.close()
         else:
             raise HTTPException(
                 status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
@@ -175,7 +180,7 @@ def create_app(db_path: str = DEFAULT_DB, ocr_engine: BasePlateOCR | None = None
             raise HTTPException(status_code=400, detail="empty image payload")
         if len(image_bytes) > MAX_JPEG_BYTES:
             raise HTTPException(
-                status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+                status_code=status.HTTP_413_CONTENT_TOO_LARGE,
                 detail=f"image exceeds maximum allowed size ({MAX_JPEG_BYTES} bytes)",
             )
 
