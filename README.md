@@ -54,7 +54,7 @@ CI kanıtı: https://github.com/0merUfuk/smart-plate-barrier/actions/runs/382497
 | Klasör | İçerik |
 |---|---|
 | backend | Python karar/kayıt çekirdeği ve yerel HTTP demo adaptörü |
-| web | Türkçe demo arayüzü, bağımlılıksız HTML/CSS/JS |
+| web | Bağımlılıksız HTML/CSS/JS demo arayüzü ve backend'e bağlı olmayan Next.js görsel kabuğu |
 | firmware | Rust durum çekirdeği ve ESP32 entegrasyon planı |
 | hardware | Elektriksel ve mekanik doğrulama listesi |
 | experiments | Sentetik karar deneyleri ve gerçek OCR deney planı |
