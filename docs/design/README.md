@@ -1,8 +1,9 @@
 # Dashboard tasarım sözleşmesi
 
 18 Ekim 2026. Bu dizin, yetkilendirilmiş frontend tasarım ve uygulama işleri için
-bağlayıcı görsel kaynaktır. Belgeler hedef arayüzü tanımlar; mevcut vanilla demo
-taşınmamıştır. Next.js kurulumu, sayfa uygulaması veya yeni API bu çalışma ile yapılmaz.
+bağlayıcı görsel kaynaktır. Belgeler hedef arayüzü tanımlar. Repository'de Next.js
+temeli ve görsel kabuk vardır; mevcut Python demo API'sine bağlı değildir. Bu
+tasarım belgeleri API sözleşmesini veya backend işlevini değiştirmez.
 
 ## Görsel temel ve kanıt sınırı
 
@@ -30,7 +31,7 @@ repository'ye kopyalanmaz; atıf yeniden kullanım lisansı değildir.
 | Karar | Durum |
 |---|---|
 | Parkora kompozisyonuna sadakat; açık mod, full-bleed, çerçevesiz navigasyon ve bağımsız kartlar | Onaylı, zorunlu |
-| Next.js + React + TypeScript + Tailwind CSS; web/ içinde frontend | ADR-09 ile onaylı hedef; uygulanmadı |
+| Next.js + React + TypeScript + Tailwind CSS; web/ içinde frontend | Temel kurulum ve görsel kabuk uygulanmış; demo entegrasyonu yapılmamış |
 | Semantik tokenların sayısal değerleri, breakpoint'ler ve Overview yerleşimi | Bu belgelerde incelemeye sunulan uygulama önerisi; referanstan ölçülmedi |
 | Fiziksel bariyer, gerçek OCR, global raporlama | Bu tasarımın uygulanmış işlevleri değil |
 

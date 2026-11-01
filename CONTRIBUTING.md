@@ -34,8 +34,10 @@ API tasarlamak Python uygulamasını değiştirme yetkisi vermez.
 
 Kalıcı mimari ve güvenlik sınırları [AGENTS.md](AGENTS.md), teknoloji kararları
 [docs/decisions.md](docs/decisions.md), mevcut mimari ve veri akışı
-[Sistem Analizi](docs/sistem-analizi.md) içindedir. ADR-09 uyarınca frontend geçişi
-ilke olarak onaylıdır; uygulama aşaması açıkça yetkilendirilmelidir.
+[Sistem Analizi](docs/sistem-analizi.md) içindedir. ADR-09 kapsamında Next.js temeli
+ve görsel kabuk repository'de mevcuttur; demo/API entegrasyonu tamamlanmış değildir.
+Yeni frontend özelliği ve entegrasyonu için ilgili API sözleşmesi ve alan sahibi
+incelemesi gerekir.
 
 ## API değişikliklerini koordine etme
 

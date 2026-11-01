@@ -14,12 +14,15 @@
 
 - backend/, web/, firmware/, hardware/, experiments/, tests/ ve docs/ korunur.
   Genel mimariyi değiştirme; yeni monorepo düzeni, mikroservis veya ek backend ekleme.
-- Mevcut demo Python standart HTTP sunucusu, SQLite ve vanilla HTML/CSS/JavaScript
-  kullanır. FastAPI planlanan Python API framework'üdür; henüz uygulanmamıştır.
+- Mevcut demo Python standart HTTP sunucusu, SQLite ve `web/index.html` tabanlı
+  HTML/CSS/JavaScript arayüzünü kullanır. `web/src/` içinde Next.js/React/TypeScript
+  temeli ve görsel kabuk vardır; backend'e bağlı değildir. FastAPI planlanan Python
+  API framework'üdür; henüz uygulanmamıştır.
 - Onaylı frontend hedefi web/ içinde Next.js + React + TypeScript + Tailwind CSS'tir.
-  Geçiş ilke olarak onaylı, henüz uygulanmamıştır. Açıkça yetkilendirilmiş geçiş
-  veya özellik görevinde web/ değiştirilebilir ve onaylı frontend bağımlılıkları
-  eklenebilir; yetki olmadan geçiş başlatma veya onaysız teknoloji ekleme.
+  Temel kurulum ve görsel kabuk uygulanmıştır; demo/backend entegrasyonu yapılmamıştır.
+  Açıkça yetkilendirilmiş geçiş veya özellik görevinde web/ değiştirilebilir ve
+  onaylı frontend bağımlılıkları eklenebilir; yetki olmadan geçiş başlatma veya
+  onaysız teknoloji ekleme.
 - OCR hedefi OpenCV + EasyOCR; Rust öncelikli firmware adayı, donanım
   uygulanabilirliğine bağlı C++ alternatiftir. ESP32-CAM, sensör ve servo
   entegrasyonu planlıdır. Kararlar [docs/decisions.md](docs/decisions.md) içindedir.
