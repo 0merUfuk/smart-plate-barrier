@@ -68,7 +68,7 @@ class DecisionTests(unittest.TestCase):
         for value in [True, float('nan'), float('inf'), -1, 2, '0.9']:
             with self.assertRaises(ValueError): self.scan(confidence=value)
     def test_input_validation(self):
-        for body in [[],{},dict(request_id='x',plate=1,confidence=.9)]:
+        for body in [[],{},dict(request_id='x',plate=1,confidence=.9),dict(request_id='x',plate='34DMO01',confidence=.9,fault='bogus')]:
             with self.assertRaises(ValueError): self.store.scan(body)
     def test_normalization_and_clear(self):
         self.assertEqual(normalize_plate('34 dmo 01'),'34DMO01')
@@ -115,6 +115,16 @@ class HTTPTests(unittest.TestCase):
             self.request('/api/demo/scan',[])
         self.assertEqual(ctx.exception.code,400)
         ctx.exception.close()
+
+    def test_http_state_and_plate_management(self):
+        with self.request('/api/state') as r:
+            st = json.load(r)
+            self.assertEqual(st['mode'], 'simulation')
+            self.assertIn('allowed_plates', st)
+        with self.request('/api/plates/add', {'plate': '34 NEW 01'}) as r:
+            self.assertEqual(json.load(r)['plate'], '34NEW01')
+        with self.request('/api/plates/remove', {'plate': '34 NEW 01'}) as r:
+            self.assertEqual(json.load(r)['plate'], '34NEW01')
 
 
 if __name__ == '__main__': unittest.main()
