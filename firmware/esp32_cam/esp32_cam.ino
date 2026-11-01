@@ -1,23 +1,22 @@
 /*
- * Akıllı Plaka Bariyer Sistemi - ESP32-CAM Firmware
+ * Akıllı Plaka Bariyer Sistemi - ESP32-CAM Tam Entegre Firmware
  *
  * Hedef Kart: AI-Thinker ESP32-CAM (OV2640 Kamera Modülü)
- * Görev:
+ * Fonksiyonlar:
  * 1. OV2640 kamerasından JPEG yakalama.
- * 2. Yerel Wi-Fi üzerinden PC'deki FastAPI sunucusuna kimlik doğrulamalı istek gönderme:
+ * 2. Yerel Wi-Fi üzerinden PC'deki FastAPI sunucusuna kimlik doğrulamalı istek:
  *    POST /api/device/v1/observations (image/jpeg)
- * 3. Sunucu kararını (allow, deny, unreadable, error) işleme.
- * 4. LED göstergeleri ve durum yönetimi:
- *    - Yeşil LED: İzin verildi (allow)
- *    - Kırmızı LED: Ret / Okunamadı / Hata
- * 5. Servo bariyer kontrolü (güvenlik doğrulamasından sonra).
+ * 3. HC-SR04 Ultrasonik Sensör ile araç yaklaşma (< 20 cm) ve geçiş tamamlama tespiti.
+ * 4. SG90 Servo motor ile bariyer kolu kontrolü (0° Kapalı, 90° Açık).
+ * 5. Durum LED'leri (Yeşil: İzin verildi, Kırmızı: Ret/Hata).
+ * 6. Bariyer hareket telemetrisi: POST /api/device/v1/events
  */
 
 #include "esp_camera.h"
 #include <WiFi.h>
 #include <HTTPClient.h>
 
-// ==================== KULLANICI AYARLARI ====================
+// ==================== KULLANICI / AĞ AYARLARI ====================
 const char* WIFI_SSID     = "WIFI_ADINIZ";
 const char* WIFI_PASSWORD = "WIFI_PAROLANIZ";
 
@@ -26,7 +25,7 @@ const char* SERVER_HOST   = "http://192.168.1.50:8000";
 const char* AUTH_TOKEN    = "smart-barrier-device-key-2026";
 const char* DEVICE_ID     = "esp32-barrier-01";
 
-// ==================== AI-THINKER PIN TANIMLARI ====================
+// ==================== AI-THINKER KAMERA PİNLERİ ====================
 #define PWDN_GPIO_NUM     32
 #define RESET_GPIO_NUM    -1
 #define XCLK_GPIO_NUM      0
@@ -45,15 +44,65 @@ const char* DEVICE_ID     = "esp32-barrier-01";
 #define HREF_GPIO_NUM     23
 #define PCLK_GPIO_NUM     22
 
-// Durum LED Pinleri (Örnek boş pinler: GPIO 12 ve GPIO 13)
-// Not: Dahili flaş LED GPIO 4'tedir; test için kullanılabilir.
-#define PIN_LED_GREEN     12
-#define PIN_LED_RED       13
-#define PIN_INTERNAL_LED  33 // ESP32-CAM dahili küçük kırmızı LED (ters mantık: LOW = Açık)
+// ==================== HARİCİ BİLEŞEN PİNLERİ ====================
+#define PIN_SERVO         14 // SG90 Servo PWM sinyal pini
+#define PIN_TRIG          15 // HC-SR04 Ultrasonik Tetikleme (Trig)
+#define PIN_ECHO          13 // HC-SR04 Ultrasonik Yankı (Echo - 1k/2k direnç bölücü ile!)
+#define PIN_LED_GREEN     12 // Yeşil Durum LED'i (Anot - 220Ω ile)
+#define PIN_LED_RED        2 // Kırmızı Durum LED'i (Anot - 220Ω ile)
+#define PIN_INTERNAL_LED  33 // Dahili küçük kırmızı LED (Ters mantık: LOW = Açık)
 
 // ==================== OTURUM VE İSTEK DURUMU ====================
 String session_id = "";
 uint32_t request_seq = 0;
+bool is_barrier_open = false;
+
+// ==================== YARDIMCI FONKSİYONLAR ====================
+
+// Kütüphanesiz, kararlı yazılımsal PWM ile servo açısı ayarla (0° - 90°)
+void setServoAngle(int angle) {
+  int pulse_us = map(angle, 0, 90, 550, 2400);
+  for (int i = 0; i < 25; i++) {
+    digitalWrite(PIN_SERVO, HIGH);
+    delayMicroseconds(pulse_us);
+    digitalWrite(PIN_SERVO, LOW);
+    delayMicroseconds(20000 - pulse_us);
+  }
+}
+
+// HC-SR04 ultrasonik mesafe okuma (cm cinsinden)
+float readDistanceCM() {
+  digitalWrite(PIN_TRIG, LOW);
+  delayMicroseconds(2);
+  digitalWrite(PIN_TRIG, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(PIN_TRIG, LOW);
+
+  long duration = pulseIn(PIN_ECHO, HIGH, 30000); // 30ms zaman aşımı (~500 cm)
+  if (duration == 0) return 999.0; // Engel yok veya zaman aşımı
+  return (duration * 0.0343) / 2.0;
+}
+
+// Sunucuya telemetri olayı bildirme (POST /api/device/v1/events)
+void sendDeviceEvent(const String& event_type, const String& barrier_state) {
+  if (WiFi.status() != WL_CONNECTED) return;
+  HTTPClient http;
+  String url = String(SERVER_HOST) + "/api/device/v1/events";
+  http.begin(url);
+  http.setTimeout(5000);
+  http.addHeader("Content-Type", "application/json");
+  http.addHeader("Authorization", String("Bearer ") + AUTH_TOKEN);
+
+  String payload = "{\"device_id\":\"" + String(DEVICE_ID) +
+                   "\",\"session_id\":\"" + session_id +
+                   "\",\"event_id\":\"evt-" + String(micros(), HEX) +
+                   "\",\"event_type\":\"" + event_type +
+                   "\",\"barrier_state\":\"" + barrier_state + "\"}";
+
+  int code = http.POST(payload);
+  Serial.printf("[TELEMETRI] Olay: %s, Durum: %s, HTTP Kodu: %d\n", event_type.c_str(), barrier_state.c_str(), code);
+  http.end();
+}
 
 void setupCamera() {
   camera_config_t config;
@@ -78,13 +127,12 @@ void setupCamera() {
   config.xclk_freq_hz = 20000000;
   config.pixel_format = PIXFORMAT_JPEG;
 
-  // PSRAM kontrolü ve çözünürlük seçimi
   if (psramFound()) {
     config.frame_size   = FRAMESIZE_VGA; // 640x480
-    config.jpeg_quality = 12; // 0-63 (düşük sayı = yüksek kalite)
+    config.jpeg_quality = 12; // 0-63
     config.fb_count     = 2;
   } else {
-    config.frame_size   = FRAMESIZE_CIF; // 400x296 (PSRAM yokken güvenli bellek boyutu)
+    config.frame_size   = FRAMESIZE_CIF; // 400x296 (PSRAM yokken güvenli)
     config.jpeg_quality = 15;
     config.fb_count     = 1;
   }
@@ -125,10 +173,26 @@ void setup() {
   Serial.println("  Akilli Plaka Bariyer - ESP32-CAM Basliyor ");
   Serial.println("==========================================");
 
-  pinMode(PIN_INTERNAL_LED, OUTPUT);
-  digitalWrite(PIN_INTERNAL_LED, HIGH); // Söndür
+  // Pin modları
+  pinMode(PIN_SERVO, OUTPUT);
+  digitalWrite(PIN_SERVO, LOW);
 
-  // Rastgele oturum kimliği üret (açılış bazlı)
+  pinMode(PIN_TRIG, OUTPUT);
+  digitalWrite(PIN_TRIG, LOW);
+  pinMode(PIN_ECHO, INPUT);
+
+  pinMode(PIN_LED_GREEN, OUTPUT);
+  digitalWrite(PIN_LED_GREEN, LOW);
+  pinMode(PIN_LED_RED, OUTPUT);
+  digitalWrite(PIN_LED_RED, LOW);
+
+  pinMode(PIN_INTERNAL_LED, OUTPUT);
+  digitalWrite(PIN_INTERNAL_LED, HIGH); // Dahili LED söndür
+
+  // Bariyer kolunu başlangıçta güvenli kapalı (0°) pozisyona al
+  setServoAngle(0);
+  is_barrier_open = false;
+
   randomSeed(micros());
   session_id = "sess-" + String(micros(), HEX) + "-" + String(random(1000, 9999));
   Serial.printf("[SISTEM] Acilis Oturum Kimligi: %s\n", session_id.c_str());
@@ -147,7 +211,7 @@ void captureAndEvaluate() {
   request_seq++;
   String request_id = "req-" + String(request_seq);
 
-  Serial.printf("\n--- Gözlem Baslatiliyor: %s ---\n", request_id.c_str());
+  Serial.printf("\n--- Gozlem Baslatiliyor: %s ---\n", request_id.c_str());
   camera_fb_t* fb = esp_camera_fb_get();
   if (!fb) {
     Serial.println("[HATA] Kare yakalanamadi (framebuffer bos)!");
@@ -159,9 +223,8 @@ void captureAndEvaluate() {
   HTTPClient http;
   String url = String(SERVER_HOST) + "/api/device/v1/observations";
   http.begin(url);
-  http.setTimeout(10000); // 10 saniye zaman aşımı
+  http.setTimeout(10000);
 
-  // Kimlik ve üstveri başlıkları
   http.addHeader("Content-Type", "image/jpeg");
   http.addHeader("Authorization", String("Bearer ") + AUTH_TOKEN);
   http.addHeader("X-Device-Id", DEVICE_ID);
@@ -173,20 +236,62 @@ void captureAndEvaluate() {
 
   if (httpCode > 0) {
     String response = http.getString();
-    Serial.printf("[SUNUCU] Yanit Kodu: %d\n", httpCode);
-    Serial.printf("[SUNUCU] Govde: %s\n", response.c_str());
+    Serial.printf("[SUNUCU] HTTP Kodu: %d\n", httpCode);
+    Serial.printf("[SUNUCU] Yanit: %s\n", response.c_str());
 
     if (httpCode == 200) {
       if (response.indexOf("\"decision\":\"allow\"") > 0) {
-        Serial.println(">>> [KARAR] IZIN VERILDI (ALLOW)! Bariyer acilabilir.");
-        // Dahili LED ile görsel bildirim (kısa yakma)
-        digitalWrite(PIN_INTERNAL_LED, LOW);
-        delay(1500);
+        Serial.println(">>> [KARAR] IZIN VERILDI (ALLOW)! Bariyer aciliyor...");
+
+        // Yeşil LED aç, Kırmızı LED kapa
+        digitalWrite(PIN_LED_GREEN, HIGH);
+        digitalWrite(PIN_LED_RED, LOW);
+        digitalWrite(PIN_INTERNAL_LED, LOW); // Dahili LED yak
+
+        // Servoyu 90 dereceye kaldır (Bariyeri Aç)
+        setServoAngle(90);
+        is_barrier_open = true;
+        sendDeviceEvent("barrier_opened", "open_waiting_clear");
+
+        // Aracın geçişini bekle (Sensörün önü boşalana kadar bekle)
+        Serial.println("[BEKLEME] Aracin gecisi bekleniyor (alan bosalmasi)...");
+        unsigned long clear_start = 0;
+        while (true) {
+          float dist = readDistanceCM();
+          if (dist > 25.0) { // Araç uzaklaştı (> 25 cm)
+            if (clear_start == 0) clear_start = millis();
+            if (millis() - clear_start > 2000) { // 2 saniye boyunca alan boşsa
+              Serial.println("[GECIS] Alan bosaldi. Bariyer kapatiliyor...");
+              break;
+            }
+          } else {
+            clear_start = 0; // Araç hala bariyere yakın
+          }
+          delay(200);
+        }
+
+        // Bariyeri kapat (0 dereceye indir)
+        setServoAngle(0);
+        is_barrier_open = false;
+        digitalWrite(PIN_LED_GREEN, LOW);
         digitalWrite(PIN_INTERNAL_LED, HIGH);
+        sendDeviceEvent("barrier_closed", "closed");
+        Serial.println("[KAPANDI] Bariyer kapandi. Sistem hazir.");
+
       } else if (response.indexOf("\"decision\":\"deny\"") > 0) {
         Serial.println(">>> [KARAR] RET (DENY)! Plaka listede yok. Bariyer kapali kalir.");
+        digitalWrite(PIN_LED_RED, HIGH);
+        digitalWrite(PIN_LED_GREEN, LOW);
+        sendDeviceEvent("access_denied", "closed");
+        delay(3000);
+        digitalWrite(PIN_LED_RED, LOW);
       } else {
         Serial.println(">>> [KARAR] OKUNAMADI / HATA! Bariyer kapali kalir.");
+        digitalWrite(PIN_LED_RED, HIGH);
+        digitalWrite(PIN_LED_GREEN, LOW);
+        sendDeviceEvent("unreadable_observation", "closed");
+        delay(3000);
+        digitalWrite(PIN_LED_RED, LOW);
       }
     } else {
       Serial.printf("[UYARI] Beklenmeyen HTTP kodu: %d\n", httpCode);
@@ -198,18 +303,24 @@ void captureAndEvaluate() {
 }
 
 void loop() {
-  // Test dongusu: Her 15 saniyede bir ornek yakalama gerceklestirir.
-  // Gercek montajda yaklasma sensoru tetikleyecektir.
-  Serial.println("\nYeni gozlem icin 15 saniye bekleniyor (veya Serial'dan 'c' gonderin)...");
-  for (int i = 0; i < 15; i++) {
-    if (Serial.available()) {
-      char c = Serial.read();
-      if (c == 'c' || c == 'C') {
-        captureAndEvaluate();
-        return;
-      }
+  // 1. Manuel seri port tetikleme kontrolü (Test kolaylığı için 'c' veya 'C')
+  if (Serial.available()) {
+    char c = Serial.read();
+    if (c == 'c' || c == 'C') {
+      captureAndEvaluate();
+      return;
     }
-    delay(1000);
   }
-  captureAndEvaluate();
+
+  // 2. Ultrasonik sensör ile otomatik araç algılama
+  if (!is_barrier_open) {
+    float dist = readDistanceCM();
+    if (dist > 1.0 && dist < 20.0) { // Araç 20 cm'den yakına geldiğinde
+      Serial.printf("\n[SENSOR] Arac algilandi! Mesafe: %.1f cm. Plaka okuma tetikleniyor...\n", dist);
+      captureAndEvaluate();
+      delay(3000); // Mükerrer peş peşe tetiklemeyi önlemek için kısa bekleme
+    }
+  }
+
+  delay(200);
 }

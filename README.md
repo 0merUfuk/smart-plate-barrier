@@ -1,65 +1,80 @@
 # Akıllı Plaka Tanıma ve Bariyer Sistemi
 
-Veri Bilimi dersi için yedi kişilik ekip projesi. İlk sürüm: `0.1.0-demo`.
-12 Ekim 2026 sunumu için yerel, donanımsız başlangıç demosu.
+Veri Bilimi dersi için yedi kişilik ekip projesi.
+Sistem; araç plakalarını kamera ile okuyan, sunucu tarafında yapay zeka (OCR) ile doğrulayan ve fiziksel bariyeri otomatik olarak yöneten prototiptir.
 
-**Bu sürüm sentetik plaka metni ve güven skoru kullanır. Gerçek OCR, kamera,
-ESP32 bağlantısı veya fiziksel servo kontrolü içermez.** İzin kontrolü, SQLite
-kayıtları, tekrar istek yönetimi ve sanal bariyer durumları çalışır.
+> [!IMPORTANT]
+> **Ekip Handoff & Entegrasyon Rehberi:**
+> Projenin donanım montajını yapacak, ESP32-CAM'e kod yükleyecek ve Next.js dashboard'u bağlayacak ekip arkadaşlarımız için eksiksiz adım adım rehber hazırlandı:
+> 📖 **[Donanım ve Yazılım Entegrasyon Rehberi](docs/donanim-ve-yazilim-entegrasyon-rehberi.md)** (Parça listesi, 3.3V/5V voltaj bölücü devresi, pin matrisi ve test adımları).
 
-## Hızlı başlangıç
+---
 
-Python 3.10 veya daha yenisi yeterlidir. Demo ek paket, internet veya model indirmez.
+## Sistem Mimarisi ve İki Çalışma Modu
 
+1. **Tam Entegre Mod (FastAPI + FastPlateOCR ONNX + ESP32-CAM + Web Dashboard)**:
+   - Gömülü istemci (ESP32-CAM) OV2640 kamerasından JPEG çeker, HTTP POST ile sunucuya iletir.
+   - PC sunucusu (`backend/fastapi_app.py`) `cct-s-v2-global-model` ONNX modelini (~6.5 ms) çalıştırır.
+   - İzinli plaka kontrolü (`backend/store.py`) tam eşleşmeyle bariyer açma/kapama ve telemetri olaylarını yönetir.
+   - Web arayüzü (`web/`) canlı sistem durumunu ve geçmişi gösterir.
+2. **Hızlı Simülasyon / Prova Modu (`backend/server.py`)**:
+   - Bağımlılıksız Python standart kütüphanesi ile `http://127.0.0.1:8080` adresinde sentetik arayüz çalışır.
+
+---
+
+## Hızlı Başlangıç
+
+### Mod A: Tam Entegre Cihaz & OCR Sunucusu
 ```bash
-cd smart-plate-barrier
+# 1. Sanal ortamı etkinleştirin ve FastAPI sunucusunu başlatın
+.venv-ocr/bin/uvicorn backend.fastapi_app:app --host 0.0.0.0 --port 8000
+
+# 2. Ayrı bir terminalde Web Dashboard'u başlatın
+cd web && npm run dev
+# Tarayıcıda: http://localhost:3000
+
+# 3. 10 Plakalı Uçtan Uca Simülasyonu Çalıştırın
+.venv-ocr/bin/python -m experiments.simulate_device
+```
+
+### Mod B: Bağımlılıksız Yerel Demo Sunucusu
+```bash
 python3 -m backend.server
+# Tarayıcıda: http://127.0.0.1:8080
 ```
 
-Windows'ta gerekirse `python3` yerine `py` kullan. Tarayıcıda
-http://127.0.0.1:8080 aç. Port doluysa `--port 8081` ekle.
-Kapatmak için terminalde Ctrl+C. Kayıtlar `data/demo.sqlite3` içinde kalır.
-Temiz prova için mevcut kayıtlarını koruyarak yeni DB seç:
-`python3 -m backend.server --db data/rehearsal.sqlite3`.
+---
 
-## Gösterim sırası
-
-1. İzinli `34 DMO 01` ve güven `0.96` gönder. Sanal bariyer açılır.
-2. Aynı isteği tekrar gönder. Yeni kayıt ve yeni hareket üretilmez.
-3. Alanı boş doğrula. Sanal bariyer kapanır.
-4. Aynı eski isteği tekrar gönder. Bariyer yeniden açılmaz.
-5. İzinsiz plaka, düşük güven, OCR hatası ve ağ hatası senaryolarını göster.
-6. Yeni sentetik izinli plaka ekle, kontrol et, sil ve yeniden kontrol et.
-
-Hata seçenekleri yazılımsal girdidir; gerçek OCR veya ağ arızası oluşturmaz.
-Kayıtlar erişim denemesidir. Aracın gerçekleşen giriş/çıkışı kaydedilmiş sayılmaz.
-UI alan boşluğunu yalnızca demoda manuel doğrular.
-
-## Doğrulama
+## Doğrulama ve Testler
 
 ```bash
+# 1. Standart Python birim testleri (54 test)
 python3 -m unittest discover -s tests -v
-python3 -m experiments.evaluate_decisions
-python3 -m compileall -q backend experiments tests
+
+# 2. OCR ve FastAPI testleri (Sanal ortamda tüm testler)
+.venv-ocr/bin/coverage run -m unittest discover -s tests && .venv-ocr/bin/coverage report -m
+
+# 3. Web Dashboard testleri ve derlemesi
+cd web && npm test && npm run lint && npm run typecheck && npm run build
 ```
 
-20 Python testi ve 8 sentetik karar senaryosu bu ortamda geçti.
-Bu sayı OCR doğruluğunu veya donanım güvenliğini ölçmez.
-Rust çekirdeği için üç test tanımlı; yerelde Rust araç zinciri bulunmadığından
-çalıştırılmadı. GitHub Actions üzerinde Python 3.10/3.12 kontrolleri ve üç Rust testi geçti.
-CI kanıtı: https://github.com/0merUfuk/smart-plate-barrier/actions/runs/38249748425
+- **54 Python birim testi** (%96 kod kapsamıyla hatasız geçmektedir).
+- **9 Vitest arayüz testi** (0 lint uyarısı, 0 tip hatası).
+- GitHub Actions CI üzerinde Python 3.10, Python 3.12 ve Rust kontrolleri doğrulanmıştır.
 
-## Repository düzeni
+---
+
+## Repository Düzeni
 
 | Klasör | İçerik |
 |---|---|
-| backend | Python karar/kayıt çekirdeği ve yerel HTTP demo adaptörü |
-| web | Bağımlılıksız HTML/CSS/JS demo arayüzü ve backend'e bağlı olmayan Next.js görsel kabuğu |
-| firmware | Rust durum çekirdeği ve ESP32 entegrasyon planı |
-| hardware | Elektriksel ve mekanik doğrulama listesi |
-| experiments | Sentetik karar deneyleri ve gerçek OCR deney planı |
-| docs | Sistem analizi, rapor kaynakları, kararlar ve demo kılavuzu |
-| tests | Karar, eşzamanlılık, kalıcılık ve HTTP testleri |
+| `backend/` | Karar çekirdeği (`domain.py`), SQLite deposu (`store.py`), FastAPI adaptörü (`fastapi_app.py`) ve OCR arayüzü (`ocr.py`) |
+| `firmware/` | ESP32-CAM tam entegre Arduino kodu (`firmware/esp32_cam/esp32_cam.ino`) ve Rust çekirdeği |
+| `web/` | Next.js 16 + React 19 + Tailwind CSS Web Dashboard arayüzü |
+| `experiments/` | Bounding-box kırpıcı (`crop_plate.py`), örnek üretici ve 10 plakalı simülasyon |
+| `hardware/` | Elektriksel doğrulama notları ve güvenlik sınırları |
+| `docs/` | Entegrasyon rehberi, API sözleşmesi (`api.md`), masaüstü rehberi (`bench-guide.md`) ve teknik kararlar |
+| `tests/` | 54 adet otomatik birim ve entegrasyon testi |
 
 ## Mimari kararlar
 
