@@ -8,6 +8,7 @@ const items: { id: string; label: string; icon: IconName }[] = [
   { id: "erisim-denemeleri", label: "Erişim Denemeleri", icon: "records" },
   { id: "izinli-plakalar", label: "İzinli Plakalar", icon: "plates" },
   { id: "simulasyon", label: "Simülasyon", icon: "simulation" },
+  { id: "dijital-ikiz", label: "3D Simülasyon", icon: "cube" },
 ];
 
 function subscribe(callback: () => void) {
