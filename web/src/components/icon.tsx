@@ -11,6 +11,7 @@ const paths = {
   shield: <><path d="m12 3 8 3v6c0 5-8 9-8 9s-8-4-8-9V6l8-3Z" /><path d="M12 8v4m0 4h.01" /></>,
   link: <path d="m10 13 4-4M8 16l-1 1a4 4 0 0 1-6-6l4-4a4 4 0 0 1 6 0m2 1 1-1a4 4 0 0 1 6 6l-4 4a4 4 0 0 1-6 0" />,
   distribution: <path d="M4 3v18h17M8 16h10M8 11h6M8 6h3" />,
+  cube: <><path d="m21 16-9 5-9-5V8l9-5 9 5v8Z" /><path d="m3.27 6.96 8.73 4.85 8.73-4.85" /><path d="M12 22V12" /></>,
 } satisfies Record<string, ReactNode>;
 
 export type IconName = keyof typeof paths;

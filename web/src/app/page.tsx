@@ -2,6 +2,7 @@ import { AppShell } from "../components/app-shell";
 import { PageHeader } from "../components/page-header";
 import { Icon } from "../components/icon";
 import { Card } from "../components/ui/card";
+import { Barrier3DModel } from "../components/barrier-3d-model";
 
 export default function HomePage() {
   return <AppShell>
@@ -35,6 +36,21 @@ export default function HomePage() {
       <Card id="erisim-denemeleri" titleId="records-title" className="records-card"><div className="card-heading"><div><span className="eyebrow">Kayıtlar</span><h2 id="records-title">Erişim Denemeleri</h2></div><span className="section-symbol"><Icon name="records" /></span></div><div className="wide-placeholder"><p className="placeholder-title">Erişim denemeleri için ayrılan alan.</p><p className="text-secondary">Kayıt verileri henüz sorgulanmadı. API bağlantısı sonraki aşamada eklenecek; arama ve filtreleme henüz kullanılamıyor.</p></div></Card>
 
       <Card id="izinli-plakalar" titleId="plates-title" className="plates-card"><div className="card-heading"><div><span className="eyebrow">İzinli liste</span><h2 id="plates-title">İzinli Plakalar</h2></div><span className="section-symbol"><Icon name="plates" /></span></div><div className="wide-placeholder"><p className="placeholder-title">İzinli plaka verileri henüz sorgulanmadı.</p><p className="text-secondary">API bağlantısı ve liste yönetimi sonraki aşamalarda eklenecek.</p></div></Card>
+
+      {/* 3D Dijital İkiz ve Maket Simülasyon Kartı (Menüde Şimşek Simgesinin Altındaki Bölüm) */}
+      <Card id="dijital-ikiz" titleId="model3d-title" className="model3d-card">
+        <div className="card-heading">
+          <div>
+            <span className="eyebrow">Fiziksel Maket &amp; Dijital İkiz</span>
+            <h2 id="model3d-title">3D Bariyer Simülasyonu</h2>
+          </div>
+          <span className="availability-label">
+            <Icon name="cube" />
+            Üç Boyutlu Maket Simülasyonu
+          </span>
+        </div>
+        <Barrier3DModel />
+      </Card>
     </main>
     <footer className="page-footer"><span>Geliştirme aşaması</span><span>Sentetik demo · Gerçek OCR veya fiziksel geçiş verisi yok.</span></footer>
   </AppShell>;

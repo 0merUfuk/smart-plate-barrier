@@ -98,7 +98,7 @@ test("Tab and Shift+Tab stay within the open mobile menu", async () => {
   await user.click(screen.getByRole("button", { name: "Gezinme menüsünü aç" }));
   const dialog = screen.getByRole("dialog", { name: "Bölümler" });
   const close = within(dialog).getByRole("button", { name: "Gezinme menüsünü kapat" });
-  const last = within(dialog).getByRole("link", { name: "Simülasyon" });
+  const last = within(dialog).getByRole("link", { name: "3D Simülasyon" });
   close.focus();
   await user.tab({ shift: true });
   expect(document.activeElement).toBe(last);
